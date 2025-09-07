@@ -157,24 +157,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const scheduleData = [
                 {
-                    label: 'Skill Development',
-                    duration: 1,
-                    timeSlot: '6:00 AM - 7:00 AM',
-                    purpose: 'This is your prime time for deep work. Use this hour to learn a new programming language, practice a design tool, or work on a side project. The morning quiet is perfect for focused learning.',
-                    color: '#f59e0b',
-                    startHour: 6,
-                    endHour: 7
-                },
-                {
-                    label: 'Reading & College Study',
-                    duration: 1,
-                    timeSlot: '7:00 AM - 8:00 AM',
-                    purpose: 'Split this time to get in your one hour of college studies and some dedicated reading time. You\'ll be fresh and ready to absorb information.',
-                    color: '#fbbf24',
-                    startHour: 7,
-                    endHour: 8
-                },
-                {
                     label: 'Work (Office & Commute)',
                     duration: 12,
                     timeSlot: '8:00 AM - 8:00 PM',
@@ -186,38 +168,56 @@
                 {
                     label: 'Dinner & Short Break',
                     duration: 0.5,
-                    timeSlot: '7:30 PM - 8:00 PM',
+                    timeSlot: '8:00 PM - 8:30 PM',
                     purpose: 'Enjoy your meal and take a moment to decompress from the day. This break is essential before transitioning to personal time.',
                     color: '#e11d48',
-                    startHour: 19.5,
-                    endHour: 20
+                    startHour: 20,
+                    endHour: 20.5
+                },
+                {
+                    label: 'Books & Skill Development',
+                    duration: 1,
+                    timeSlot: '8:30 PM - 9:30 PM',
+                    purpose: 'This is your dedicated hour for personal growth. Use it to dive into a good book or acquire a new skill for your career. The evening is a great time for focused learning.',
+                    color: '#f59e0b',
+                    startHour: 20.5,
+                    endHour: 21.5
                 },
                 {
                     label: 'Time with Girlfriend',
                     duration: 2,
-                    timeSlot: '8:00 PM - 10:00 PM',
+                    timeSlot: '9:30 PM - 11:30 PM',
                     purpose: 'This is a crucial two-hour block dedicated to your relationship. Turn off work notifications and be fully present.',
                     color: '#f43f5e',
-                    startHour: 20,
-                    endHour: 22
+                    startHour: 21.5,
+                    endHour: 23.5
                 },
                 {
                     label: 'Evening Flex Time',
                     duration: 2,
-                    timeSlot: '10:00 PM - 12:00 AM',
+                    timeSlot: '11:30 PM - 1:30 AM',
                     purpose: 'Use this block for an additional hour of study, more skill development, or winding down before bed. Listen to music, journal, or prepare for the next day. The key is to avoid strenuous mental activity close to bedtime.',
                     color: '#f9a8d4',
-                    startHour: 22,
-                    endHour: 24
+                    startHour: 23.5,
+                    endHour: 1.5
                 },
                 {
                     label: 'Sleep',
                     duration: 6,
-                    timeSlot: '12:00 AM - 6:00 AM',
+                    timeSlot: '1:30 AM - 7:30 AM',
                     purpose: 'This six-hour block is a non-negotiable part of your plan. Proper rest is the foundation for all your other goals. It\'s when your brain consolidates what you\'ve learned and recharges.',
                     color: '#0d9488',
-                    startHour: 0,
-                    endHour: 6
+                    startHour: 1.5,
+                    endHour: 7.5
+                },
+                {
+                    label: 'Reading & College Study',
+                    duration: 0.5,
+                    timeSlot: '7:30 AM - 8:00 AM',
+                    purpose: 'Split this time to get in your one hour of college studies and some dedicated reading time. You\'ll be fresh and ready to absorb information.',
+                    color: '#fbbf24',
+                    startHour: 7.5,
+                    endHour: 8
                 }
             ];
             
@@ -280,11 +280,22 @@
                 let currentActivity = null;
                 let nextActivity = null;
                 
-                const sortedSchedule = [...scheduleData].sort((a, b) => a.startHour - b.startHour);
+                const sortedSchedule = [...scheduleData].sort((a, b) => {
+                  const startA = a.startHour >= 8 ? a.startHour : a.startHour + 24;
+                  const startB = b.startHour >= 8 ? b.startHour : b.startHour + 24;
+                  return startA - startB;
+                });
 
                 for (let i = 0; i < sortedSchedule.length; i++) {
                     const activity = sortedSchedule[i];
-                    if (currentHourDecimal >= activity.startHour && currentHourDecimal < activity.endHour) {
+                    const start = activity.startHour;
+                    const end = activity.endHour;
+                    
+                    const adjustedStart = start < 8 ? start + 24 : start;
+                    const adjustedEnd = end < 8 ? end + 24 : end;
+                    const adjustedCurrent = currentHourDecimal < 8 ? currentHourDecimal + 24 : currentHourDecimal;
+
+                    if (adjustedCurrent >= adjustedStart && adjustedCurrent < adjustedEnd) {
                         currentActivity = activity;
                         nextActivity = sortedSchedule[(i + 1) % sortedSchedule.length];
                         break;
