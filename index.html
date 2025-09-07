@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Daily Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Muted Earth Tones -->
+    <!-- Application Structure Plan: The application uses a multi-section dashboard layout. A top-level summary provides at-a-glance metrics (Work, Growth, etc.). A central interactive section features a donut chart paired with a dynamic detail panel, allowing users to drill down into specific activities. A collapsible full timetable provides a complete reference, keeping the initial view clean. This structure was chosen to provide a quick summary, followed by an engaging interactive view, and finally, a detailed reference for all data, optimizing for both quick checks and deep dives. -->
+    <!-- Visualization & Content Choices: 1. Time Allocation (Report Table) -> Goal: Compare, Inform -> Viz: Donut Chart -> Interaction: Click to update details -> Justification: Clearly visualizes the proportion of time spent on each activity. The interactive component enhances engagement. -> Library: Chart.js (Canvas). 2. Activity Details (Report Table Rows) -> Goal: Inform -> Viz: Dynamic Text Block -> Interaction: Content updates on chart click -> Justification: Presents focused, contextual information. -> Library/Method: Vanilla JS DOM manipulation. 3. Key Goals (Work, Personal, Growth) -> Goal: Inform -> Viz: Static Metric Cards -> Interaction: None -> Justification: Highlights the most important aspects of the schedule. -> Library/Method: HTML/Tailwind. 4. Full Timetable -> Goal: Organize -> Viz: HTML Table with a collapsible section -> Interaction: Toggle visibility -> Justification: Provides a complete list without cluttering the main dashboard. -> Library/Method: Vanilla JS DOM manipulation. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fa;
+            color: #3f3c3a;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 50vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 450px;
+            }
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .nav-button {
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .nav-button.active {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <header class="text-center mb-8 md:mb-12">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Your Daily Productivity Plan</h1>
+            <h2 id="welcomeMessage" class="mt-2 text-xl font-medium text-gray-600"></h2>
+            <p class="mt-2 text-base text-gray-500 max-w-2xl mx-auto">An interactive guide to help you manage your time and achieve your goals. Click on the chart segments to explore details.</p>
+        </header>
+        
+        <section class="mb-8">
+            <div class="card p-5 rounded-xl shadow-sm text-center">
+                <p id="liveTime" class="text-3xl font-bold text-gray-900"></p>
+                <div class="mt-2 text-sm text-gray-500">
+                    <p id="currentActivity">Currently: </p>
+                    <p id="nextActivity">Up Next: </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="card p-5 rounded-xl shadow-sm text-center mb-8">
+            <h3 class="text-lg font-semibold text-gray-500">Daily Motivation</h3>
+            <p id="dailyQuote" class="text-xl font-medium text-gray-800 mt-2 italic leading-relaxed"></p>
+        </section>
+
+        <section class="grid grid-cols-1 sm:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
+            <div class="card p-5 rounded-xl shadow-sm text-center">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Work & Commute</h3>
+                <p class="text-3xl font-bold text-blue-600 mt-2">12 hrs</p>
+                <p class="text-xs text-gray-400 mt-1">Office & Travel</p>
+            </div>
+            <div class="card p-5 rounded-xl shadow-sm text-center">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Growth Time</h3>
+                <p class="text-3xl font-bold text-amber-600 mt-2">4 hrs</p>
+                <p class="text-xs text-gray-400 mt-1">Skill Dev, Study, Reading</p>
+            </div>
+            <div class="card p-5 rounded-xl shadow-sm text-center">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Rest & Recharge</h3>
+                <p class="text-3xl font-bold text-teal-600 mt-2">6 hrs</p>
+                <p class="text-xs text-gray-400 mt-1">Essential Sleep</p>
+            </div>
+            <div class="card p-5 rounded-xl shadow-sm text-center">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Personal Time</h3>
+                <p class="text-3xl font-bold text-rose-600 mt-2">2.5 hrs</p>
+                <p class="text-xs text-gray-400 mt-1">Girlfriend & Dinner</p>
+            </div>
+        </section>
+
+        <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div class="w-full">
+                    <div class="chart-container">
+                        <canvas id="scheduleChart"></canvas>
+                    </div>
+                </div>
+                <div id="activityDetails" class="space-y-4">
+                    <h2 id="activityTitle" class="text-2xl font-bold text-gray-900 border-b-2 border-amber-500 pb-2"></h2>
+                    <div class="flex items-center text-gray-500">
+                        <span class="mr-2">🕒</span>
+                        <p id="activityTime" class="font-medium"></p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-700 mb-1">Focus & Purpose:</h4>
+                        <p id="activityPurpose" class="text-gray-500 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <section class="mt-8 md:mt-12">
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Full Timetable</h2>
+                </div>
+                <div id="timetableContent">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto text-sm text-left text-gray-500 rounded-lg overflow-hidden">
+                            <thead class="bg-gray-50 text-gray-700 uppercase">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Time Slot</th>
+                                    <th scope="col" class="px-6 py-3">Activity</th>
+                                    <th scope="col" class="px-6 py-3">Focus & Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody" class="divide-y divide-gray-200">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center mt-8 md:mt-12">
+             <div class="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                 <h3 class="font-bold text-lg text-gray-900">A Note on Your Schedule's Foundation</h3>
+                <p class="text-sm text-gray-600 mt-2">
+                    This plan prioritizes getting at least 6 hours of sleep, a significant boost from 4. This change is the single most important factor for improving mental and physical performance. By using the early morning for deep work, you capitalize on your most productive, distraction-free hours, ensuring your growth activities aren't compromised by a long workday.
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const scheduleData = [
+                {
+                    label: 'Skill Development',
+                    duration: 1,
+                    timeSlot: '6:00 AM - 7:00 AM',
+                    purpose: 'This is your prime time for deep work. Use this hour to learn a new programming language, practice a design tool, or work on a side project. The morning quiet is perfect for focused learning.',
+                    color: '#f59e0b',
+                    startHour: 6,
+                    endHour: 7
+                },
+                {
+                    label: 'Reading & College Study',
+                    duration: 1,
+                    timeSlot: '7:00 AM - 8:00 AM',
+                    purpose: 'Split this time to get in your one hour of college studies and some dedicated reading time. You\'ll be fresh and ready to absorb information.',
+                    color: '#fbbf24',
+                    startHour: 7,
+                    endHour: 8
+                },
+                {
+                    label: 'Work (Office & Commute)',
+                    duration: 12,
+                    timeSlot: '8:00 AM - 8:00 PM',
+                    purpose: 'This time is fixed. Your focus should be on giving your best at work. Use any small pockets of free time (e.g., commute) for passive learning like listening to a podcast related to skill development.',
+                    color: '#64748b',
+                    startHour: 8,
+                    endHour: 20
+                },
+                {
+                    label: 'Dinner & Short Break',
+                    duration: 0.5,
+                    timeSlot: '7:30 PM - 8:00 PM',
+                    purpose: 'Enjoy your meal and take a moment to decompress from the day. This break is essential before transitioning to personal time.',
+                    color: '#e11d48',
+                    startHour: 19.5,
+                    endHour: 20
+                },
+                {
+                    label: 'Time with Girlfriend',
+                    duration: 2,
+                    timeSlot: '8:00 PM - 10:00 PM',
+                    purpose: 'This is a crucial two-hour block dedicated to your relationship. Turn off work notifications and be fully present.',
+                    color: '#f43f5e',
+                    startHour: 20,
+                    endHour: 22
+                },
+                {
+                    label: 'Evening Flex Time',
+                    duration: 2,
+                    timeSlot: '10:00 PM - 12:00 AM',
+                    purpose: 'Use this block for an additional hour of study, more skill development, or winding down before bed. Listen to music, journal, or prepare for the next day. The key is to avoid strenuous mental activity close to bedtime.',
+                    color: '#f9a8d4',
+                    startHour: 22,
+                    endHour: 24
+                },
+                {
+                    label: 'Sleep',
+                    duration: 6,
+                    timeSlot: '12:00 AM - 6:00 AM',
+                    purpose: 'This six-hour block is a non-negotiable part of your plan. Proper rest is the foundation for all your other goals. It\'s when your brain consolidates what you\'ve learned and recharges.',
+                    color: '#0d9488',
+                    startHour: 0,
+                    endHour: 6
+                }
+            ];
+            
+            const quotes = [
+                "The only way to do great work is to love what you do. - Steve Jobs",
+                "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+                "Believe you can and you're halfway there. - Theodore Roosevelt",
+                "Your time is limited, don't waste it living someone else's life. - Steve Jobs",
+                "The only impossible journey is the one you never begin. - Tony Robbins",
+                "The best way to predict the future is to create it. - Peter Drucker",
+                "Don't count the days, make the days count. - Muhammad Ali",
+                "The secret of getting ahead is getting started. - Mark Twain",
+                "The biggest risk is not taking any risk. - Mark Zuckerberg",
+                "Opportunities don't happen, you create them. - Chris Grosser",
+                "You are never too old to set another goal or to dream a new dream. - C.S. Lewis",
+                "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
+                "The only thing we have to fear is fear itself. - Franklin D. Roosevelt",
+                "The journey of a thousand miles begins with a single step. - Lao Tzu",
+                "Strive not to be a success, but rather to be of value. - Albert Einstein"
+            ];
+
+            function getDayOfYear() {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), 0, 0);
+                const diff = (now - start) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
+                const oneDay = 1000 * 60 * 60 * 24;
+                return Math.floor(diff / oneDay);
+            }
+
+            function setDailyQuote() {
+                const day = getDayOfYear();
+                const quoteIndex = day % quotes.length;
+                document.getElementById('dailyQuote').textContent = quotes[quoteIndex];
+            }
+
+            function setWelcomeMessage() {
+                const now = new Date();
+                const hour = now.getHours();
+                let message;
+                if (hour < 12) {
+                    message = "Good morning! Let's make today productive.";
+                } else if (hour < 18) {
+                    message = "Good afternoon! Stay focused and finish strong.";
+                } else {
+                    message = "Good evening! Time to reflect and recharge.";
+                }
+                document.getElementById('welcomeMessage').textContent = message;
+            }
+            
+            function updateClockAndActivity() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+
+                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('liveTime').textContent = timeString;
+
+                const currentHourDecimal = hours + minutes / 60;
+                let currentActivity = null;
+                let nextActivity = null;
+                
+                const sortedSchedule = [...scheduleData].sort((a, b) => a.startHour - b.startHour);
+
+                for (let i = 0; i < sortedSchedule.length; i++) {
+                    const activity = sortedSchedule[i];
+                    if (hours >= activity.startHour && hours < activity.endHour) {
+                        currentActivity = activity;
+                        nextActivity = sortedSchedule[(i + 1) % sortedSchedule.length];
+                        break;
+                    }
+                }
+                
+                if (currentActivity) {
+                    document.getElementById('currentActivity').textContent = `Currently: ${currentActivity.label}`;
+                } else {
+                    document.getElementById('currentActivity').textContent = `Currently: In between activities`;
+                }
+
+                if (nextActivity) {
+                    document.getElementById('nextActivity').textContent = `Up Next: ${nextActivity.label} (${nextActivity.timeSlot})`;
+                }
+            }
+
+            const titleEl = document.getElementById('activityTitle');
+            const timeEl = document.getElementById('activityTime');
+            const purposeEl = document.getElementById('activityPurpose');
+
+            function updateDetails(index) {
+                const activity = scheduleData[index];
+                if(activity) {
+                    titleEl.textContent = activity.label;
+                    timeEl.textContent = activity.timeSlot;
+                    purposeEl.textContent = activity.purpose;
+                }
+            }
+
+            function createTable() {
+                const tableBody = document.getElementById('scheduleTableBody');
+                scheduleData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.classList.add('bg-white', 'border-b', 'hover:bg-gray-50');
+
+                    const timeCell = document.createElement('td');
+                    timeCell.classList.add('px-6', 'py-4', 'font-medium', 'text-gray-900', 'whitespace-nowrap');
+                    timeCell.textContent = item.timeSlot;
+                    row.appendChild(timeCell);
+
+                    const activityCell = document.createElement('td');
+                    activityCell.classList.add('px-6', 'py-4');
+                    activityCell.textContent = item.label;
+                    row.appendChild(activityCell);
+
+                    const purposeCell = document.createElement('td');
+                    purposeCell.classList.add('px-6', 'py-4', 'leading-relaxed');
+                    purposeCell.textContent = item.purpose;
+                    row.appendChild(purposeCell);
+
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            const ctx = document.getElementById('scheduleChart').getContext('2d');
+            const scheduleChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: scheduleData.map(item => item.label),
+                    datasets: [{
+                        label: 'Hours per Day',
+                        data: scheduleData.map(item => item.duration),
+                        backgroundColor: scheduleData.map(item => item.color),
+                        borderColor: '#f5f7fa',
+                        borderWidth: 4,
+                        hoverOffset: 16
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                font: {
+                                    size: 12,
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: '#3f3c3a',
+                            titleFont: { weight: 'bold', family: 'Inter' },
+                            bodyFont: { family: 'Inter' },
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += context.parsed + ' hrs';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const chartElement = elements[0];
+                            const index = chartElement.index;
+                            updateDetails(index);
+                        }
+                    }
+                }
+            });
+
+            setDailyQuote();
+            setWelcomeMessage();
+            updateDetails(0);
+            createTable();
+            updateClockAndActivity();
+            setInterval(updateClockAndActivity, 1000);
+        });
+    </script>
+</body>
+</html>
