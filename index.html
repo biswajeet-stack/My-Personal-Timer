@@ -56,7 +56,7 @@
 <body class="antialiased">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <header class="text-center mb-8 md:mb-12 flex flex-col items-center">
-            <h1 class="text-3xl md:text-4xl font-bold text-white">Your Daily Productivity Plan</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Biswajeet Time Table</h1>
             <h2 id="welcomeMessage" class="mt-2 text-xl font-medium text-gray-300"></h2>
             <p class="mt-2 text-base text-gray-400 max-w-2xl mx-auto">An interactive guide to help you manage your time and achieve your goals. Click on the chart segments to explore details.</p>
         </header>
@@ -185,11 +185,11 @@
                 },
                 {
                     label: 'Reading & College Study',
-                    duration: 2,
+                    duration: 2.5,
                     timeSlot: '6:00 AM - 8:00 AM',
                     color: '#fbbf24',
                     startHour: 6,
-                    endHour: 8
+                    endHour: 8.5
                 }
             ];
             
@@ -251,14 +251,17 @@
             
             function updateClockAndActivity() {
                 const now = new Date();
-                const hours = now.getHours();
+                let hours = now.getHours();
                 const minutes = now.getMinutes();
-                const seconds = now.getSeconds();
-
-                const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12;
+                const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+                const timeString = `${hours}:${minutesStr} ${ampm}`;
+                
                 document.getElementById('liveTime').textContent = timeString;
 
-                const currentHourDecimal = hours + minutes / 60;
+                const currentHourDecimal = now.getHours() + now.getMinutes() / 60;
                 let currentActivity = null;
                 let nextActivity = null;
                 
