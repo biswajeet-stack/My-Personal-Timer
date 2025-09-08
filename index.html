@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Chosen Palette: Muted Earth Tones -->
-    <!-- Application Structure Plan: The application uses a multi-section dashboard layout. A top-level summary provides at-a-glance metrics (Work, Growth, etc.). A central interactive section features a donut chart paired with a dynamic detail panel, allowing users to drill down into specific activities. A collapsible full timetable provides a complete reference, keeping the initial view clean. This structure was chosen to provide a quick summary, followed by an engaging interactive view, and finally, a detailed reference for all data, optimizing for both quick checks and deep dives. -->
-    <!-- Visualization & Content Choices: 1. Time Allocation (Report Table) -> Goal: Compare, Inform -> Viz: Donut Chart -> Interaction: Click to update details -> Justification: Clearly visualizes the proportion of time spent on each activity. The interactive component enhances engagement. -> Library: Chart.js (Canvas). 2. Activity Details (Report Table Rows) -> Goal: Inform -> Viz: Dynamic Text Block -> Interaction: Content updates on chart click -> Justification: Presents focused, contextual information. -> Library/Method: Vanilla JS DOM manipulation. 3. Key Goals (Work, Personal, Growth) -> Goal: Inform -> Viz: Static Metric Cards -> Interaction: None -> Justification: Highlights the most important aspects of the schedule. -> Library/Method: HTML/Tailwind. 4. Full Timetable -> Goal: Organize -> Viz: HTML Table with a collapsible section -> Interaction: Toggle visibility -> Justification: Provides a complete list without cluttering the main dashboard. -> Library/Method: Vanilla JS DOM manipulation. -->
+    <!-- Application Structure Plan: The application uses a multi-section dashboard layout. A top-level summary provides at-a-glance metrics (Work, Growth, etc.). A central interactive section features a donut chart as the main visual element. The full timetable provides a complete reference. This structure was chosen to provide a quick summary, followed by an engaging interactive view, and finally, a detailed reference for all data, optimizing for quick checks and usability. -->
+    <!-- Visualization & Content Choices: 1. Time Allocation (Report Table) -> Goal: Compare, Inform -> Viz: Donut Chart -> Interaction: Click to update details -> Justification: Clearly visualizes the proportion of time spent on each activity. The interactive component enhances engagement. -> Library: Chart.js (Canvas). 2. Activity Details (Report Table Rows) -> Goal: Inform -> Viz: Dynamic Text Block -> Interaction: Content updates on chart click -> Justification: Presents focused, contextual information. -> Library/Method: Vanilla JS DOM manipulation. 3. Key Goals (Work, Personal, Growth) -> Goal: Inform -> Viz: Static Metric Cards -> Interaction: None -> Justification: Highlights the most important aspects of the schedule. -> Library/Method: HTML/Tailwind. 4. Full Timetable -> Goal: Organize -> Viz: HTML Table -> Interaction: None -> Justification: Provides a complete list without cluttering the main dashboard. -> Library/Method: Vanilla JS DOM manipulation. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
@@ -84,12 +84,12 @@
             </div>
             <div class="card p-5 rounded-xl shadow-sm text-center">
                 <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Growth Time</h3>
-                <p class="text-3xl font-bold text-amber-400 mt-2">2 hrs</p>
+                <p class="text-3xl font-bold text-amber-400 mt-2">3.5 hrs</p>
                 <p class="text-xs text-gray-500 mt-1">Skill Dev, Study, Reading</p>
             </div>
             <div class="card p-5 rounded-xl shadow-sm text-center">
                 <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Rest & Recharge</h3>
-                <p class="text-3xl font-bold text-teal-400 mt-2">6.5 hrs</p>
+                <p class="text-3xl font-bold text-teal-400 mt-2">6 hrs</p>
                 <p class="text-xs text-gray-500 mt-1">Essential Sleep</p>
             </div>
             <div class="card p-5 rounded-xl shadow-sm text-center">
@@ -100,21 +100,10 @@
         </section>
 
         <main class="bg-slate-800 p-6 md:p-8 rounded-2xl shadow-lg border border-gray-700">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div class="grid grid-cols-1 items-center">
                 <div class="w-full">
                     <div class="chart-container">
                         <canvas id="scheduleChart"></canvas>
-                    </div>
-                </div>
-                <div id="activityDetails" class="space-y-4">
-                    <h2 id="activityTitle" class="text-2xl font-bold text-white border-b-2 border-amber-500 pb-2"></h2>
-                    <div class="flex items-center text-gray-400">
-                        <span class="mr-2">🕒</span>
-                        <p id="activityTime" class="font-medium"></p>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-300 mb-1">Focus & Purpose:</h4>
-                        <p id="activityPurpose" class="text-gray-400 leading-relaxed"></p>
                     </div>
                 </div>
             </div>
@@ -132,7 +121,6 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3">Time Slot</th>
                                     <th scope="col" class="px-6 py-3">Activity</th>
-                                    <th scope="col" class="px-6 py-3">Focus & Purpose</th>
                                 </tr>
                             </thead>
                             <tbody id="scheduleTableBody" class="divide-y divide-gray-700">
@@ -142,15 +130,6 @@
                 </div>
             </div>
         </section>
-
-        <footer class="text-center mt-8 md:mt-12">
-             <div class="max-w-3xl mx-auto bg-slate-800 p-6 rounded-2xl shadow-md border border-gray-700">
-                 <h3 class="font-bold text-lg text-white">A Note on Your Schedule's Foundation</h3>
-                <p class="text-sm text-gray-300 mt-2">
-                    This plan prioritizes getting at least 6.5 hours of sleep, a significant boost from 4. This change is the single most important factor for improving mental and physical performance. By using the early morning for deep work, you capitalize on your most productive, distraction-free hours, ensuring your growth activities aren't compromised by a long workday.
-                </p>
-            </div>
-        </footer>
     </div>
 
     <script>
@@ -160,7 +139,6 @@
                     label: 'Work (Office & Commute)',
                     duration: 12,
                     timeSlot: '8:00 AM - 8:00 PM',
-                    purpose: 'This time is fixed. Your focus should be on giving your best at work. Use any small pockets of free time (e.g., commute) for passive learning like listening to a podcast related to skill development.',
                     color: '#64748b',
                     startHour: 8,
                     endHour: 20
@@ -169,16 +147,14 @@
                     label: 'Dinner & Short Break',
                     duration: 0.5,
                     timeSlot: '8:00 PM - 8:30 PM',
-                    purpose: 'Enjoy your meal and take a moment to decompress from the day. This break is essential before transitioning to personal time.',
                     color: '#e11d48',
                     startHour: 20,
                     endHour: 20.5
                 },
                 {
-                    label: 'Books & Skill Development',
+                    label: 'Books, Skills & Study',
                     duration: 0.5,
                     timeSlot: '8:30 PM - 9:00 PM',
-                    purpose: 'This is your dedicated hour for personal growth. Use it to dive into a good book or acquire a new skill for your career. The evening is a great time for focused learning.',
                     color: '#f59e0b',
                     startHour: 20.5,
                     endHour: 21
@@ -187,36 +163,32 @@
                     label: 'Time with Girlfriend',
                     duration: 2,
                     timeSlot: '9:00 PM - 11:00 PM',
-                    purpose: 'This is a crucial two-hour block dedicated to your relationship. Turn off work notifications and be fully present.',
                     color: '#f43f5e',
                     startHour: 21,
                     endHour: 23
                 },
                 {
-                    label: 'Evening Flex Time',
+                    label: 'Evening Skills & Study',
                     duration: 1,
                     timeSlot: '11:00 PM - 12:00 AM',
-                    purpose: 'Use this block for an additional hour of study, more skill development, or winding down before bed. Listen to music, journal, or prepare for the next day. The key is to avoid strenuous mental activity close to bedtime.',
-                    color: '#f9a8d4',
+                    color: '#f59e0b',
                     startHour: 23,
                     endHour: 24
                 },
                 {
                     label: 'Sleep',
-                    duration: 6.5,
-                    timeSlot: '12:00 AM - 6:30 AM',
-                    purpose: 'This five-hour block is a non-negotiable part of your plan. Proper rest is the foundation for all your other goals. It\'s when your brain consolidates what you\'ve learned and recharges.',
+                    duration: 6,
+                    timeSlot: '12:00 AM - 6:00 AM',
                     color: '#0d9488',
                     startHour: 0,
-                    endHour: 6.5
+                    endHour: 6
                 },
                 {
                     label: 'Reading & College Study',
-                    duration: 1.5,
-                    timeSlot: '6:30 AM - 8:00 AM',
-                    purpose: 'Split this time to get in your one hour of college studies and some dedicated reading time. You\'ll be fresh and ready to absorb information.',
+                    duration: 2,
+                    timeSlot: '6:00 AM - 8:00 AM',
                     color: '#fbbf24',
-                    startHour: 6.5,
+                    startHour: 6,
                     endHour: 8
                 }
             ];
@@ -236,7 +208,17 @@
                 "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
                 "The only thing we have to fear is fear itself. - Franklin D. Roosevelt",
                 "The journey of a thousand miles begins with a single step. - Lao Tzu",
-                "Strive not to be a success, but rather to be of value. - Albert Einstein"
+                "Strive not to be a success, but rather to be of value. - Albert Einstein",
+                "The mind is everything. What you think you become. - Buddha",
+                "An unexamined life is not worth living. - Socrates",
+                "The best time to plant a tree was 20 years ago. The second best time is now. - Chinese Proverb",
+                "Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time. - Thomas Edison",
+                "If you can't fly then run, if you can't run then walk, if you can't walk then crawl, but whatever you do you have to keep moving forward. - Martin Luther King Jr.",
+                "The way to get started is to quit talking and begin doing. - Walt Disney",
+                "Success is walking from failure to failure with no loss of enthusiasm. - Winston Churchill",
+                "I have not failed. I've just found 10,000 ways that won't work. - Thomas Edison",
+                "If you are not willing to risk the usual, you will have to settle for the ordinary. - Jim Rohn",
+                "The successful warrior is the average man, with laser-like focus. - Bruce Lee"
             ];
 
             function getDayOfYear() {
@@ -312,22 +294,10 @@
                     document.getElementById('nextActivity').textContent = `Up Next: ${nextActivity.label} (${nextActivity.timeSlot})`;
                 }
             }
-
-            const titleEl = document.getElementById('activityTitle');
-            const timeEl = document.getElementById('activityTime');
-            const purposeEl = document.getElementById('activityPurpose');
-
-            function updateDetails(index) {
-                const activity = scheduleData[index];
-                if(activity) {
-                    titleEl.textContent = activity.label;
-                    timeEl.textContent = activity.timeSlot;
-                    purposeEl.textContent = activity.purpose;
-                }
-            }
-
+            
             function createTable() {
                 const tableBody = document.getElementById('scheduleTableBody');
+                tableBody.innerHTML = '';
                 scheduleData.forEach(item => {
                     const row = document.createElement('tr');
                     row.classList.add('bg-slate-800', 'border-b', 'border-gray-700', 'hover:bg-slate-700');
@@ -342,29 +312,31 @@
                     activityCell.textContent = item.label;
                     row.appendChild(activityCell);
 
-                    const purposeCell = document.createElement('td');
-                    purposeCell.classList.add('px-6', 'py-4', 'leading-relaxed', 'text-white');
-                    purposeCell.textContent = item.purpose;
-                    row.appendChild(purposeCell);
-
                     tableBody.appendChild(row);
                 });
             }
             
+            const growthTime = scheduleData.filter(item => item.label.includes('Study') || item.label.includes('Skills') || item.label.includes('Reading')).reduce((sum, item) => sum + item.duration, 0);
+            const personalTime = scheduleData.filter(item => item.label.includes('Dinner') || item.label.includes('Girlfriend')).reduce((sum, item) => sum + item.duration, 0);
+            const sleepTime = scheduleData.find(item => item.label === 'Sleep').duration;
+            const workTime = scheduleData.find(item => item.label.includes('Work')).duration;
+
+            const chartData = {
+                labels: ['Work (Office & Commute)', 'Dinner & Short Break', 'Growth Time', 'Time with Girlfriend', 'Sleep'],
+                datasets: [{
+                    label: 'Hours per Day',
+                    data: [workTime, scheduleData[1].duration, growthTime, scheduleData[3].duration, sleepTime],
+                    backgroundColor: ['#64748b', '#e11d48', '#f59e0b', '#f43f5e', '#0d9488'],
+                    borderColor: '#2d3748',
+                    borderWidth: 4,
+                    hoverOffset: 16
+                }]
+            };
+
             const ctx = document.getElementById('scheduleChart').getContext('2d');
             const scheduleChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: {
-                    labels: scheduleData.map(item => item.label),
-                    datasets: [{
-                        label: 'Hours per Day',
-                        data: scheduleData.map(item => item.duration),
-                        backgroundColor: scheduleData.map(item => item.color),
-                        borderColor: '#2d3748',
-                        borderWidth: 4,
-                        hoverOffset: 16
-                    }]
-                },
+                data: chartData,
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
@@ -405,20 +377,13 @@
                                 }
                             }
                         }
-                    },
-                    onClick: (event, elements) => {
-                        if (elements.length > 0) {
-                            const chartElement = elements[0];
-                            const index = chartElement.index;
-                            updateDetails(index);
-                        }
                     }
                 }
             });
 
+
             setDailyQuote();
             setWelcomeMessage();
-            updateDetails(0);
             createTable();
             updateClockAndActivity();
             setInterval(updateClockAndActivity, 1000);
